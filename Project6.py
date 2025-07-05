@@ -59,27 +59,70 @@ nuevo. Tu avanza hasta donde puedas. '''
 
 import os
 from pathlib import Path
+HOME = Path.home()
+RECIPE_ROUTE = Path(HOME / "Desktop\Proyectos VSCODE\Python Udemy\Materiales de apoyo\Recetas")
 
-RECIPE_ROUTE = Path("C:/Users/migue/Documents/Recetas")
+def categories():
+    return [category.name for category in Path(RECIPE_ROUTE).iterdir() if category.is_dir()]
 
-def read_recipe():
-    pass
+def recipe_in_file(route):
+    return [recipe.stem for recipe in Path(route).iterdir() if recipe.is_file() and recipe.suffix == ".txt"]
 
-def new_recipe():
-    pass
+def categorie_selected(categories, text):
+    print("Estas son las categorías disponibles para ingresar: ", ", ".join(categories))
+    categorie = input(text)
+    while categorie not in categories:
+        categorie = input("Ingresa el nombre exacto de la categoría: ")
+    return categorie
 
-def new_category():
-    pass
+def recipe_select(destiny, text):
+    category_destiny = Path(RECIPE_ROUTE / destiny)
+    recipes_in_file = recipe_in_file(category_destiny)
+    if not recipes_in_file:
+        return None 
+    print(f"\nLas recetas disponibles actualmente en {destiny} son las siguientes:", ", ".join(recipes_in_file))
+    recipe_selected = input(f"Ingresa el nombre de la receta a {text}: ")
+    while recipe_selected not in recipes_in_file:
+        recipe_selected = input(f"Ingresa el nombre correcto de la receta a {text}: ")
+    view_recipe = category_destiny / f"{recipe_selected.title()}.txt"
+    return view_recipe
 
-def delete_recipe():
-    pass
+def read_recipe(categories):#Option 1
+    destiny = categorie_selected(categories, "\nEscribe el nombre de la categoría a la que quieres ingresar: ")
+    view_recipe = recipe_select(destiny, "visualizar")
+    if view_recipe == None:
+        print("\nNo hay recetas!")
+    else:
+        print(f"El contenido de la receta es: {view_recipe.read_text()}")
 
-def delete_category():
-    pass
+def new_recipe(categories):#Option 2
+    destiny = categorie_selected(categories, "\nEscribe el nombre de la categoría a la que quieres ingresar: ")
+    name_recipe = input("Ingresa el nuevo nombre de la receta a crear: ")
+    content_recipe = input("Ingresa el contenido de la receta nueva: ")
+    file_selected = Path(RECIPE_ROUTE / destiny / f"{name_recipe}.txt")
+    file_selected.write_text(content_recipe)
+    print(f"La receta {name_recipe} fue creada con éxito.")
 
-def end_programm():
-    return False
+def new_category():#Option 3
+    new_file = input("Ingresa el nombre de la nueva categoría que quieres crear: ")
+    os.makedirs(RECIPE_ROUTE / new_file)
+    print(f"La categoría {new_file} ha sido creada con éxito.")
 
+def delete_recipe(categories):#Option 4
+    destiny = categorie_selected(categories, "\nEscribe el nombre de la categoría a la que quieres ingresar: ")
+    recipe_deleted = recipe_select(destiny, "eliminar")
+    if recipe_deleted == None:
+        print("\nNo hay recetas!")
+    else:
+        recipe_deleted.unlink()
+        print(f"La receta {recipe_deleted.stem} ha sido eliminada con éxito.")
+
+def delete_category(categories):#Option 5
+    file_delete = categorie_selected(categories, "\nEscribe el nombre de la categoría que quieres eliminar: ")
+    while file_delete not in categories:
+        file_delete = input("Ingresa un nombre existente: ")
+    os.rmdir(RECIPE_ROUTE / file_delete)
+    print(f"La categoría {file_delete} ha sido eliminado con éxito.")
 
 def count_all_recipes():
     cont = 0
@@ -87,23 +130,61 @@ def count_all_recipes():
         cont += 1
     return cont
 
+def end_code(valor):
+    if valor == "Si":
+        return True
+    else:
+        return False
 
-def main():
-    all_recipes = count_all_recipes()
-    print("¡WELCOME!\n" \
-    "Este es el Recetario. Aquí podrás gestionar tus recetas que se encuentra en la siguiente ruta:\n" \
-    f"{RECIPE_ROUTE}\n" \
-    f"Hay en total {all_recipes} recetas entre todas las carpetas.\n")
-    option = input("Por favor, ingresa una de las siguientes opciones: ")
-    print("\nPor favor, ingresa una de las siguientes opciones:\n"
+def clear_display():
+    return os.system('cls')
+
+def menu():
+    print("MENÚ:\n"
     "1. Leer receta por categoría.\n"
     "2. Crear receta por categoría.\n"
     "3. Crear nueva categoría.\n"
     "4. Eliminar receta.\n"
     "5. Eliminar categoría.\n"
     "6. Salir.")
+    option = int(input("Por favor, ingresa una de las siguientes opciones: "))
+    while option not in range(1,7):
+        option = int(input("Ingresa un valor correcto: "))
+    if option == 1:
+        clear_display()
+        read_recipe(categories())
+        return True
+    elif option == 2:
+        clear_display()
+        new_recipe(categories())
+        return True
+    elif option == 3:
+        clear_display()
+        new_category()
+        return True
+    elif option == 4:
+        clear_display()
+        delete_recipe(categories())
+        return True
+    elif option == 5:
+        clear_display()
+        delete_category(categories())
+        return True
+    elif option == 6:
+        return False
 
-    
+def main():
+    all_recipes = count_all_recipes()
+    print("\n¡WELCOME!\n" \
+    "\nEste es el Recetario. Aquí podrás gestionar tus recetas que se encuentra en la siguiente ruta:\n" \
+    f"{RECIPE_ROUTE}\n" \
+    f"Hay en total {all_recipes} recetas entre todas las carpetas.\n")
+    status_programm = True
+    while status_programm:
+        status_programm = menu()
+        if status_programm in range(1,6):
+            input("\nPresiona Enter para volver al menú...")
+        clear_display()
 
 
 if __name__ == "__main__":
